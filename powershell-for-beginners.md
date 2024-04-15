@@ -11,7 +11,7 @@ In powershell, we often use shorter ways of writing commands - these are called 
 
 ## Get-Help
 
-This is a very important cmdlet since it helps us understand cmdlets and how to use them. We can use it with the name of a cmdlet: `Get-Help Get-Service` We can also put the name of the cmdlet followed by `-?` which will give us the help for it: `Get-Service ?-`
+This is a very important cmdlet since it helps us understand cmdlets and how to use them. We can use it with the name of a cmdlet: `Get-Help Get-Service` We can also put the name of the cmdlet followed by `-?` which will give us the help for it: `Get-Service -?`
 
 >[!NOTE]
 >Powershell *cmdlets* use the same structure which is *verb-noun*
