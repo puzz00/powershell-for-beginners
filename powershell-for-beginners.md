@@ -75,3 +75,29 @@ We can find the *methods* and *properties* of an object by using `Get-Member`
 
 The above command will return the properties and methods of objects returned when we run `Get-Process`
 
+## Working With Data and Variables
+
+### Datatypes
+
+We can use different datatypes in powershell. If we want to know more about the methods we can invoke and the properties we can call with a specific datatype, we can use: `8 | Get-Member` - this example will list the methods for *integer* datatypes since `8` is an integer.
+
+In order to call properties on objects we can enclose the object in `()` like so: `("hello").Length`
+
+In order to invoke a method on an object we can do as above but include `()` with the method like so: `('hello world').Split(' ')`
+
+We can combine commands as in this example which splits the initial string on the blank space and creates an array of two strings from the output of the `split` method before finding the `Length` property of that array: `('hello world').Split(' ').Length`
+
+### Variables
+
+To declare variables in powershell we use `$` before the name of the variable. We can use `=` to assign a value to a variable. An example of declaring a variable and assigning a value to it is: `$user = 'BillyBob'`
+
+We can find the datatype of the value assigned to a variable by using: `$user.Get-Type()`
+
+If we want to ensure that only a specific datatype is allowed to be assigned to a variable, we can use `[]` when we declare it: `[String]$city = 'Swansea'` If we do not do this, we will be able to assign different datatypes to the variable.
+
+If we want to find out more about all of the variables which we have access to, we can go the the *variable drive* and list its contents. We can navigate to it using: `Set-Location Variable:`
+
+We can assign objects returned from cmdlets to variables for example: `$cmdProcess = Get-Process cmd`
+
+We can then invoke methods and access properties related to the object via the variable like so: `$cmdProcess.Kill()`
+
