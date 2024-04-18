@@ -101,3 +101,74 @@ We can assign objects returned from cmdlets to variables for example: `$cmdProce
 
 We can then invoke methods and access properties related to the object via the variable like so: `$cmdProcess.Kill()`
 
+## Powershell Providers and PSDrives
+
+Powershell providers let us access data stores in a way which is similar to navigating a file system. The interface we use is very much like the one we use to interact with a mounted drive. This means we can easily navigate different resources such as the registry or file system easily within our powershell session.
+
+>[!TIP]
+>We can see our PS providers using `Get-PSProvider`
+
+PSDrives are the access points for providers. They are not mapped drives and they will end once we exit our powershell session.
+
+We can list the PSDrives which are available to us using: `Get-PSDrive`
+
+>[!NOTE]
+>In order to access a *PSDrive* we need to add a `:` at the end of its name - for example `Variable:`
+
+We can create our own PSDrives like so:
+
+```powershell
+New-PSDrive -Name dcShare -PSProvider FileSystem -Root '\\HYDRA-DC\C$\Users\tstark\Documents'
+```
+
+We can specify drives on our local machine or other machines on our domain as the `-Root` path for the PSDrive we are creating. This means we can easily navigate around a domain and or copy data across machines.
+
+We could, for example, interact with the `tstark\Documents` directory on the `HYDRA-DC` machine in the above example by using: `Set-Locaction dcShare:`
+
+If we want to copy data we could use: `Copy-Item -Path dcShare:\creds.txt -Destination C:\Looted`
+
+When we are creating a new PSDrive, we can use the `-Credential` parameter like so:
+
+```powershell
+New-PSDrive -Name dcShare -PSProvider FileSystem -Root '\\HYDRA-DC\C$\Users\tstark -Credential (Get-Credential)'
+```
+
+We can remove PSDrives by using `Remove-PSDrive dcShare`
+
+## Hash Tables
+
+In the powershell ISE, we can create a hash table using:
+
+```powershell
+$users = @{
+    'mmouse' = 'mouseymcmouseface123'
+    'dduck' = 'duckymcduckduck321'
+    'ysam' = 'sixgunlover888'
+}
+```
+
+We can then invoke different methods on the hash table object. We can, for example, add new name:value pairs using `$users.Add('bbunny', 'ilikecarrots738')`
+
+>[!NOTE]
+>We can add name:value pairs to hash tables using `$users += @{'peye' = 'sailorman333'}`
+
+We can remove a name:value pair using `$users.Remove('ysam')`
+
+We can also access the keys and values of hash tables. A way to access the values is to use dot notation with the name specified for example `$users.dduck`
+
+By default, hash tables are unordered data collections. We can get ordered - sorted - versions of them using `[ordered]` like so: `$pets = [ordered]@{ 'cat' = 'Garfield'; 'dog' = 'Lassie'; 'horse' = 'mred'}`
+
+>[!TIP]
+>We use `;` as the delimitor when we are creating hash tables in powershell on one line
+
+## Arrays
+
+Arrays in powershell are ordered data collecions like lists in python. We can create them just by assigning more than one value to a variable: `$cities = 'Brum', 'London', 'Manchester'`
+
+We can combine different datatypes in arrays.
+
+We can use indexes to access values in arrays: `$cities[0]`
+
+We can use the shorthand `+=` to add items to arrays: `cities += 'Liverpool'`
+
+As for hash tables, there are methods we can invoke on arrays.
