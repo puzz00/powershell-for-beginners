@@ -172,3 +172,138 @@ We can use indexes to access values in arrays: `$cities[0]`
 We can use the shorthand `+=` to add items to arrays: `cities += 'Liverpool'`
 
 As for hash tables, there are methods we can invoke on arrays.
+
+## Selecting, Sorting and Finding Data
+
+When it comes to selecting, sorting and finding data, there are three very important commands:
+
+- `Select-Object`
+- `Where-Object`
+- `Sort-Object`
+
+We can use `Sort-Object` to sort data according to different *properties* it has. An example would be sorting the contents of a directory by the length of the files in it using: `gci | Sort-Object -Property Length` We can then specify *how* we want to sort the data. An example is if we want to see only the *unique* values - we can do this using the `-Unique` parameter: `gci | Sort-Object -Property Length -Unique`
+
+The `Select-Object` cmdlet lets us select objects based on different criteria. We can, for example, select the properties of objects to make a custom table of results: `Get-Process | Select-Object ProcessName,CPU`
+
+>[!NOTE]
+>It is common to see the alias `Select` used instead of `Select-Object`
+
+>[!TIP]
+>We can cast the output of `Select-Object` to be a *string* by using `-ExpandProperty` for example: `Get-Process | Select-Object -ExpandProperty Processname`
+
+If we want to exclude properties from the returned data, we can use the `-ExcludeProperty` parameter.
+
+### Where-Object
+
+The syntax for `Where-Object` introduces a new idea which is that we can use `$_` or on powershell versions from `3.0` we can also use `$Psitem` to refer to the current object which is being piped to a new command.
+
+An example of this would be using `Where-Object` to filter the output from `Get-Process` so that only processes which have a value of greater than `5.0` for the `CPU` property are returned. In order to understand this example, we need to be aware that when the output from `Get-Process` is piped to a new command it is done so one object at a time.
+
+```powershell
+Get-Process | Where-Object {$_.CPU -GT 5.00}
+```
+
+In this example, we are using a `-FilterScript` with the `Where-Object` cmdlet. We do not need to explicitly specify the `-FilterScript` parameter name as it is in the first position.
+
+We then use `$_` to refer to the current object which has been passed to `Where-Object` via a pipe from `Get-Process`
+
+We then use `.CPU` to access the `CPU` property of the current object.
+
+The value of the `CPU` property is then compared to our specified condition of it being greater than 5.00 which we write as `-GT 5.00`
+
+In this way, only processes which have a value of greater than 5.00 for their CPU property will be returned.
+
+>[!NOTE]
+>In versions of powershell from 3.0 we can use `$Psitem` instead of `$_` to refer to the current object
+
+We can use `-eq` in our filterscript if we want to only return *exact* matches to our specified value or we can use `-like` if we want to use wildcards. We can also use `-ne` which means *not equal*.
+
+>[!TIP]
+>We can use aliases for `Where-Object` such as `Where` or `?`
+
+Here are some examples which use the ideas from above.
+
+```powershell
+Get-Service | Where {$_.Name -Like '*its'}
+
+Get-Service | Where {$Psitem.Name -eq 'bits'}
+
+Get-Service | ? {$_.Name -ne 'bits'}
+```
+
+>[!NOTE]
+>In more recent versions of powershell we do not need to use `{}` around the `-FilterScript`
+
+### Order of Commands
+
+When working with these three cmdlets, it is best to *select* the objects first and then *filter* and *sort* them. An example of this follows:
+
+```powershell
+Get-Service | Select Name,CanStop | Where {$_.CanStop -eq 'True'} | Sort-Object Name -Descending
+```
+
+>[!TIP]
+>Since powershell returns a list when there are five or more properties to return we can force the output to be a table using the `Format-Table` cmdlet
+
+## Doing More with Objects
+
+### Out-File
+
+We can use the `Out-File` cmdlet to direct the output of a command to a specified file. An example would be sending output to a .txt file so we can work with it later:
+
+```powershell
+Get-EventLog -LogName Security -Newest 10 | Select InstanceId,Message | Out-File 'C:\Users\fcastle\Documents\sec_10.txt'
+```
+
+### Get-Content
+
+We can use `Get-Content` to bring data into powershell from external files - we usually use .txt files with `Get-Content` as there are different cmdlets to work with .csv data.
+
+```powershell
+$sec10 = Get-Content 'C:\Users\fcastle\Documents\sec_10.txt'
+```
+
+### Custom Headers using Select-Object
+
+We can create our own headers using custom headers with the `Select-Object` cmdlet. We can specify a *name* and an *expression* using this technique.
+
+The following example will hopefully make this more clear.
+
+In powershell, we can use `Test-Connection` to check if hosts are live by using ICMP packets of data - this is the powershell way to do `ping`
+
+```powershell
+Test-Connection HYDRA-DC -Count 1
+```
+
+If we want to see just a `True` or `False` value we can use the `-Quiet` parameter.
+
+We can test more than one machine by creating a variable which contains as strings the names of the machines we want to test.
+
+```powershell
+$hosts = 'HYDRA-DC', 'THEPUNISHER', 'SPIDERMAN'
+
+$hosts | ForEach-Object { Test-Connection $_ -Count 1 -Quiet }
+```
+
+The above command uses the `ForEach-Object` cmdlet to test the connection to each object contained in the variable `$hosts` - we do not see the machine names, however, just `True` or `False`
+
+We could solve this problem in a simple way by including the string which is being tested but it does not look elegant and is not very readable.
+
+```powershell
+$hosts | ForEach-Object { $_; Test-Connection $_ -Count 1 -Quiet }
+```
+
+To create a more readable output we can use custom headers.
+
+```powershell
+$hosts | ForEach-Object { $_ | Select @{ Name='HostName';Expression={ $_ } } }
+```
+
+This first custom header shows us a newly created header which has the name of `HostName` with the strings from the `$hosts` variable as its values.
+
+We can add another custom header which will use the returned boolean values from the `Test-Connection` cmdlet as its values. This will create a more readable format for the output of the `Test-Connection` command which we want to run.
+
+```powershell
+$hosts | ForEach-Object { $_ | Select @{ Name='HostName';Expression={ $_ } }, @{ Name='Up';Expression={ Test-Connection $_ -Count 1 -Quiet } } }
+```
+
